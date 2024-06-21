@@ -5,7 +5,7 @@ import 'core/networking/local/hive_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await HiveService().init();
+  // await HiveService().init();
 
   runApp(
     const ProviderScope(
@@ -13,3 +13,4 @@ void main() async {
     ),
   );
 }
+
