@@ -1,15 +1,16 @@
+import 'package:flaviourfleet/features/dashboard/data/model/menu_model.dart';
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
-import 'cart_screen.dart';
-import 'profile_screen.dart';
-import '../model/menu_model.dart'; // Import the MenuModel
+import 'home_view.dart';
+import 'cart_view.dart';
+import 'profile_view.dart';
+// Import the MenuModel
 
-class MenuScreen extends StatefulWidget {
+class MenuView extends StatefulWidget {
   @override
-  _MenuScreenState createState() => _MenuScreenState();
+  _MenuViewState createState() => _MenuViewState();
 }
 
-class _MenuScreenState extends State<MenuScreen> {
+class _MenuViewState extends State<MenuView> {
   final MenuModel _menuModel = MenuModel();
 
   @override
@@ -29,7 +30,7 @@ class _MenuScreenState extends State<MenuScreen> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
+              MaterialPageRoute(builder: (context) => HomeView()),
             );
           },
         ),
