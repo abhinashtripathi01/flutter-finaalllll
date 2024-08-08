@@ -1,44 +1,80 @@
+import 'package:flaviourfleet/app/constants/api_endpoint.dart';
+import 'package:flaviourfleet/features/dashboard/presentation/view/cart_view.dart';
+import 'package:flaviourfleet/features/dashboard/presentation/view/menu_view.dart';
+import 'package:flaviourfleet/features/dashboard/presentation/view/notification_view.dart';
+import 'package:flaviourfleet/features/dashboard/presentation/view/profile_view.dart';
+import 'package:flaviourfleet/features/dashboard/presentation/viewmodel/dashboard_view_model.dart';
 import 'package:flutter/material.dart';
-import 'menu_view.dart'; // Import the MenuView
-import 'profile_view.dart'; // Import the ProfileView
-import 'notification_view.dart'; // Import the NotificationView
-import 'cart_view.dart'; // Import the CartView
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flaviourfleet/features/dashboard/presentation/state/dashboard_state.dart';
 
-class HomeView extends StatefulWidget {
+class HomeView extends ConsumerStatefulWidget {
   @override
   _HomeViewState createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+
+class _HomeViewState extends ConsumerState<HomeView> {
   int _selectedIndex = 0;
+  final ScrollController _scrollController = ScrollController();
+  bool isLoading = false;
+  int currentPage = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+  }
+
+  
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.extentAfter < 500 && !isLoading) {
+      setState(() {
+        isLoading = true;
+      });
+      _loadMorePosts();
+    }
+  }
+
+  Future<void> _loadMorePosts() async {
+    await ref
+        .read(dashboardViewModelProvider.notifier)
+        .getPosts(page: currentPage);
+    setState(() {
+      isLoading = false;
+      currentPage++;
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
 
-    // Handle navigation based on the selected index
     switch (index) {
       case 0:
         // Home
-        // No navigation needed as it's the current screen
         break;
       case 1:
-        // Menu
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => MenuView()),
         );
         break;
       case 2:
-        // Cart
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => CartView()),
         );
         break;
       case 3:
-        // Profile
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => ProfileView()),
@@ -54,27 +90,31 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+
+
+
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(dashboardViewModelProvider);
+
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Remove the back button
+        automaticallyImplyLeading: false,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Namaste, Abhinash',
+            const Text(
+              'Namaste, ',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
             IconButton(
-              onPressed:
-                  _navigateToNotificationView, // Navigate to NotificationView
-              icon: Icon(
+              onPressed: _navigateToNotificationView,
+              icon: const Icon(
                 Icons.notifications,
-                size: 32, // Increase the size of the icon
+                size: 32,
               ),
             ),
           ],
@@ -82,6 +122,7 @@ class _HomeViewState extends State<HomeView> {
         backgroundColor: Colors.orangeAccent,
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -89,22 +130,22 @@ class _HomeViewState extends State<HomeView> {
               padding: const EdgeInsets.all(16.0),
               child: TextField(
                 decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
                   hintText: 'Search for restaurants, cuisines...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
                 'Today\'s Specials',
                 style: TextStyle(
@@ -113,28 +154,25 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: [
-                  _buildSpecialItem(
-                    'Stuffed Bean',
-                    'assets/images/ts1.jpeg',
-                    'Burgerery Fee 20-40 min',
-                  ),
-                  _buildSpecialItem(
-                    'Potato Cor',
-                    'assets/images/ts2.jpeg',
-                    '\$5 Delivery Fee',
-                  ),
-                  // Add more special items here
-                ],
+                children: state.lstposts.map((post) {
+                  String imageUrl =
+                      '${ApiEndpoints.imageUrl}${post.productImage}';
+                  print('Image URL: $imageUrl'); // Debugging statement
+                  return _buildSpecialItem(
+                    post.productName,
+                    imageUrl,
+                    'Price: Rs ${post.productPrice}',
+                  );
+                }).toList(),
               ),
             ),
-            SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            const SizedBox(height: 20),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
                 'Explore Restaurants',
                 style: TextStyle(
@@ -143,12 +181,29 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
-            _buildRestaurantCategory('Offer', 'assets/images/er.jpeg'),
-            _buildRestaurantCategory(
-                'Sri Lankan', 'assets/images/offersri.jpeg'),
-            _buildRestaurantCategory('Italian', 'assets/images/offersri.jpeg'),
-            // Add more restaurant categories here
+            const SizedBox(height: 10),
+            ...state.lstposts.map((post) {
+              String imageUrl = '${ApiEndpoints.imageUrl}${post.productImage}';
+              print('Image URL: $imageUrl'); // Debugging statement
+              return _buildRestaurantCategory(
+                post.productName,
+                imageUrl,
+              );
+            }),
+            if (state.hasReachedMax)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Center(
+                  child: Text(
+                    'No more products available',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ),
+              ),
+            if (isLoading)
+              const Center(
+                child: CircularProgressIndicator(),
+              ),
           ],
         ),
       ),
@@ -188,24 +243,36 @@ class _HomeViewState extends State<HomeView> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
+            child: Image.network(
               imagePath,
               width: 180,
               height: 180,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 180,
+                  height: 180,
+                  color: Colors.grey[200],
+                  child: const Icon(
+                    Icons.error,
+                    color: Colors.red,
+                    size: 50,
+                  ),
+                );
+              },
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
             subtitle,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: Colors.grey,
             ),
@@ -223,17 +290,29 @@ class _HomeViewState extends State<HomeView> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
+            child: Image.network(
               imagePath,
               width: double.infinity,
               height: 200,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: double.infinity,
+                  height: 200,
+                  color: Colors.grey[200],
+                  child: const Icon(
+                    Icons.error,
+                    color: Colors.red,
+                    size: 50,
+                  ),
+                );
+              },
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),

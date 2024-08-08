@@ -1,13 +1,15 @@
 import 'package:flaviourfleet/app/navigator/navigator.dart';
 import 'package:flaviourfleet/features/dashboard/presentation/view/home_view.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final homeViewNavigatorProvider = Provider((ref) => HomeNavigator());
+final dashboardViewNavigatorProvider =
+    Provider<DashboardViewNavigator>((ref) => DashboardViewNavigator());
 
-class HomeNavigator {}
+class DashboardViewNavigator {}
 
-mixin HomeViewRoute {
-  openDashboardView() {
+mixin DashboardViewRoute {
+  void openDashboardView() {
     NavigateRoute.pushRoute(HomeView());
   }
 }
