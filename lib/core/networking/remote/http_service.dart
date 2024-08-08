@@ -16,7 +16,7 @@ class HttpService {
 
   HttpService(this._dio) {
     _dio
-      ..options.baseUrl = ApiEndpoints.baseUrl
+      ..options.baseUrl = ApiEndpoints.baseUr
       ..options.connectTimeout = ApiEndpoints.connectionTimeout
       ..options.receiveTimeout = ApiEndpoints.receiveTimeout
       ..interceptors.add(DioErrorInterceptor())
