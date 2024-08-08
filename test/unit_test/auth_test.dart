@@ -21,7 +21,7 @@ import 'auth_test.mocks.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late AuthUseCase mockAuthUsecase;
-  late LoginViewNavigator mockLoginNavigator
+  late LoginViewNavigator mockLoginNavigator;
   // late RegisterViewNavigator mockRegisterNavigator;
 
   late ProviderContainer container;
